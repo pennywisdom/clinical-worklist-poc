@@ -24,6 +24,25 @@
                     ⚠️ DEMONSTRATION ONLY - ALL PATIENT & CONSULTANT DATA IS FICTITIOUS ⚠️
                 </div>
             </div>
+            <!-- Priority Dashboard -->
+            <div class="priority-dashboard">
+                <div class="priority-stat urgent">
+                    <div class="count" id="urgent-count">0</div>
+                    <div class="label">Urgent</div>
+                </div>
+                <div class="priority-stat high">
+                    <div class="count" id="high-count">0</div>
+                    <div class="label">High Priority</div>
+                </div>
+                <div class="priority-stat medium">
+                    <div class="count" id="medium-count">0</div>
+                    <div class="label">Medium Priority</div>
+                </div>
+                <div class="priority-stat low">
+                    <div class="count" id="low-count">0</div>
+                    <div class="label">Low Priority</div>
+                </div>
+            </div>
             <div class="header-stats">
                 <div class="stat-card">
                     <h3>Total Scans</h3>
@@ -47,35 +66,48 @@
                     <div class="filter-controls">
                         <select id="statusFilter">
                             <option value="all">All Statuses</option>
-                            <option value="Pending Review">Pending Review</p>
-                            <option value="Reviewed">Reviewed</p>
-                            <option value="Flagged for Specialist">Flagged for Specialist</p>
+                            <option value="Pending Review">Pending Review</option>
+                            <option value="In Progress">In Progress</option>
+                            <option value="Completed">Completed</option>
                         </select>
-                        <input type="text" id="searchBox" placeholder="Search by patient ID or body part...">
+                        <select id="priority-sort" class="priority-sort">
+                            <option value="priority">Sort by Priority</option>
+                            <option value="date">Sort by Date</option>
+                            <option value="patient">Sort by Patient</option>
+                        </select>
+                        <input type="text" id="searchBox" placeholder="Search by patient ID, name, or body part...">
                     </div>
                 </div>
-                <div id="scanList" class="scan-list">
-                    <!-- Scan cards will be injected here by JavaScript -->
-                </div>
-                <div id="loadingState" class="loading-state">
-                    <div class="loading-spinner"></div>
-                    <p>Loading imaging data...</p>
-                </div>
-                <div id="emptyState" class="empty-state" style="display: none;">
-                    <div class="empty-icon">📂</div>
-                    <h3>No scans found</h3>
-                    <p>No scans match the current filter criteria.</p>
+                
+                <div class="worklist" id="scansList">
+                    <div class="loading">Loading scans...</div>
                 </div>
             </div>
 
             <div class="analytics-container">
                 <div class="chart-widget">
-                    <h3>Scan Types</h3>
+                    <h3>📊 Scan Types Distribution</h3>
                     <canvas id="scanTypeChart"></canvas>
                 </div>
                 <div class="chart-widget">
-                    <h3>AI Confidence Distribution</h3>
+                    <h3>🤖 AI Confidence Distribution</h3>
                     <canvas id="confidenceChart"></canvas>
+                </div>
+                <div class="chart-widget">
+                    <h3>🚨 Priority Levels</h3>
+                    <canvas id="priorityChart"></canvas>
+                </div>
+                <div class="chart-widget">
+                    <h3>📈 Status Overview</h3>
+                    <canvas id="statusChart"></canvas>
+                </div>
+                <div class="chart-widget">
+                    <h3>🏥 Body Parts Scanned</h3>
+                    <canvas id="bodyPartsChart"></canvas>
+                </div>
+                <div class="chart-widget">
+                    <h3>📅 Scans by Date</h3>
+                    <canvas id="dateChart"></canvas>
                 </div>
             </div>
         </main>

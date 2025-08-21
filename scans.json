@@ -1,0 +1,70 @@
+[
+  {
+    "scanId": "scan_f9b3a",
+    "patientId": "p001",
+    "scanType": "MRI",
+    "bodyPart": "Right Knee",
+    "scanDate": "2025-08-21T09:30:00Z",
+    "imageUrl": "/images/right_knee.png",
+    "aiPreliminaryDiagnosis": "Complete ACL Tear",
+    "aiConfidenceScore": 0.96,
+    "status": "Pending Review",
+    "priority": "Urgent",
+    "assignedRadiologist": "Dr. Emily Carter"
+  },
+  {
+    "scanId": "scan_a1c4e",
+    "patientId": "p002",
+    "scanType": "X-Ray",
+    "bodyPart": "Left Ankle",
+    "scanDate": "2025-08-21T10:15:00Z",
+    "imageUrl": "/images/left_ankle.png",
+    "aiPreliminaryDiagnosis": "Distal Fibula Fracture (Weber B)",
+    "aiConfidenceScore": 0.99,
+    "status": "Reviewed",
+    "priority": "High",
+    "assignedRadiologist": "Dr. Ben Stone",
+    "finalDiagnosis": "Confirmed distal fibula fracture, Weber B type. No significant talar shift.",
+    "reviewTimestamp": "2025-08-21T10:45:00Z"
+  },
+  {
+    "scanId": "scan_d8e7f",
+    "patientId": "p003",
+    "scanType": "CT Scan",
+    "bodyPart": "Right Wrist",
+    "scanDate": "2025-08-21T11:00:00Z",
+    "imageUrl": "/images/right_wrist.png",
+    "aiPreliminaryDiagnosis": "Non-displaced Scaphoid Waist Fracture",
+    "aiConfidenceScore": 0.88,
+    "status": "Pending Review",
+    "priority": "High",
+    "assignedRadiologist": "Dr. Emily Carter"
+  },
+  {
+    "scanId": "scan_b2d5g",
+    "patientId": "p004",
+    "scanType": "MRI",
+    "bodyPart": "Left Shoulder",
+    "scanDate": "2025-08-21T08:45:00Z",
+    "imageUrl": "/images/left_shoulder.png",
+    "aiPreliminaryDiagnosis": "Partial-thickness Rotator Cuff Tear (Supraspinatus)",
+    "aiConfidenceScore": 0.92,
+    "status": "Flagged for Specialist",
+    "priority": "Urgent",
+    "assignedRadiologist": "Dr. Ben Stone",
+    "notes": "AI indicates significant tendon retraction. Recommend orthopedic consult."
+  },
+  {
+    "scanId": "scan_c6h9i",
+    "patientId": "p005",
+    "scanType": "X-Ray",
+    "bodyPart": "Right Foot",
+    "scanDate": "2025-08-21T11:20:00Z",
+    "imageUrl": "/images/right_foot.png",
+    "aiPreliminaryDiagnosis": "Suspected 3rd Metatarsal Stress Fracture",
+    "aiConfidenceScore": 0.76,
+    "status": "Pending Review",
+    "priority": "Routine",
+    "assignedRadiologist": "Dr. Emily Carter"
+  }
+]

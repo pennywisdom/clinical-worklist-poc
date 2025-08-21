@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI-Assisted Orthopedic Imaging Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="dashboard-container">
+        <header class="header">
+            <div class="header-content">
+                <h1 class="title">
+                    <span class="icon">🦴</span>
+                    AI-Assisted Orthopedic Imaging
+                </h1>
+                <p class="subtitle">Radiology worklist for fractures and ligament damage</p>
+                <div class="demo-notice">
+                    ⚠️ DEMONSTRATION ONLY - ALL PATIENT & CONSULTANT DATA IS FICTITIOUS ⚠️
+                </div>
+            </div>
+            <div class="header-stats">
+                <div class="stat-card">
+                    <h3>Total Scans</h3>
+                    <p id="totalScans">0</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Pending Review</h3>
+                    <p id="pendingReview">0</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Urgent Priority</h3>
+                    <p id="urgentPriority">0</p>
+                </div>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <div class="worklist-container">
+                <div class="worklist-header">
+                    <h2>Radiology Worklist</h2>
+                    <div class="filter-controls">
+                        <select id="statusFilter">
+                            <option value="all">All Statuses</option>
+                            <option value="Pending Review">Pending Review</p>
+                            <option value="Reviewed">Reviewed</p>
+                            <option value="Flagged for Specialist">Flagged for Specialist</p>
+                        </select>
+                        <input type="text" id="searchBox" placeholder="Search by patient ID or body part...">
+                    </div>
+                </div>
+                <div id="scanList" class="scan-list">
+                    <!-- Scan cards will be injected here by JavaScript -->
+                </div>
+                <div id="loadingState" class="loading-state">
+                    <div class="loading-spinner"></div>
+                    <p>Loading imaging data...</p>
+                </div>
+                <div id="emptyState" class="empty-state" style="display: none;">
+                    <div class="empty-icon">📂</div>
+                    <h3>No scans found</h3>
+                    <p>No scans match the current filter criteria.</p>
+                </div>
+            </div>
+
+            <div class="analytics-container">
+                <div class="chart-widget">
+                    <h3>Scan Types</h3>
+                    <canvas id="scanTypeChart"></canvas>
+                </div>
+                <div class="chart-widget">
+                    <h3>AI Confidence Distribution</h3>
+                    <canvas id="confidenceChart"></canvas>
+                </div>
+            </div>
+        </main>
+
+        <footer class="footer">
+            <p>For clinical use only. AI diagnosis is preliminary.</p>
+        </footer>
+    </div>
+
+    <!-- Modal for scan details -->
+    <div id="scanModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button">&times;</span>
+            <div id="modalBody">
+                <!-- Scan details will be injected here -->
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

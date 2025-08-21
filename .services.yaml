@@ -1,0 +1,6 @@
+services:
+  - name: app
+    path: .
+    public: true
+    aarepo: 592311462240.dkr.ecr.eu-west-2.amazonaws.com/devops-core/dev/devops-core-sdp-test-backend
+    bucket: {}

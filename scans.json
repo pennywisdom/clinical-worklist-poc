@@ -17,7 +17,11 @@
       "score": 85,
       "aiAnalysis": "Suspected complete ACL tear with associated bone marrow edema. Recommend urgent orthopedic consultation.",
       "confidence": 92,
-      "flags": ["suspected_tear", "joint_effusion", "acute_injury"]
+      "flags": [
+        "suspected_tear",
+        "joint_effusion",
+        "acute_injury"
+      ]
     }
   },
   {
@@ -32,13 +36,17 @@
     "consultant": "Dr. Maria Rodriguez",
     "description": "Hip pain following fall at home",
     "findings": "Fracture detected in femoral neck",
-    "image": "images/left_shoulder.png",
+    "image": "images/left_hip.png",
     "priority": {
       "level": "urgent",
       "score": 95,
       "aiAnalysis": "Displaced femoral neck fracture requiring immediate surgical intervention. High risk of avascular necrosis.",
       "confidence": 98,
-      "flags": ["fracture", "displacement", "surgical_emergency"]
+      "flags": [
+        "fracture",
+        "displacement",
+        "surgical_emergency"
+      ]
     }
   },
   {
@@ -59,7 +67,10 @@
       "score": 65,
       "aiAnalysis": "Stress fracture of distal tibia with minimal displacement. Conservative management likely appropriate.",
       "confidence": 88,
-      "flags": ["stress_fracture", "minimal_displacement"]
+      "flags": [
+        "stress_fracture",
+        "minimal_displacement"
+      ]
     }
   },
   {
@@ -74,13 +85,16 @@
     "consultant": "Dr. Lisa Park",
     "description": "Lower back pain radiating to leg",
     "findings": "Herniated disc L4-L5",
-    "image": "images/right_foot.png",
+    "image": "images/lower_back.png",
     "priority": {
       "level": "medium",
       "score": 70,
       "aiAnalysis": "Central disc herniation at L4-L5 with mild spinal canal narrowing. Monitor for neurological symptoms.",
       "confidence": 85,
-      "flags": ["disc_herniation", "spinal_stenosis"]
+      "flags": [
+        "disc_herniation",
+        "spinal_stenosis"
+      ]
     }
   },
   {
@@ -101,7 +115,10 @@
       "score": 25,
       "aiAnalysis": "No acute fractures or dislocations identified. Soft tissue injury likely. Clinical correlation recommended.",
       "confidence": 94,
-      "flags": ["normal_bones", "soft_tissue"]
+      "flags": [
+        "normal_bones",
+        "soft_tissue"
+      ]
     }
   },
   {
@@ -122,7 +139,10 @@
       "score": 60,
       "aiAnalysis": "Partial thickness supraspinatus tear. Consider physical therapy before surgical intervention.",
       "confidence": 90,
-      "flags": ["partial_tear", "rotator_cuff"]
+      "flags": [
+        "partial_tear",
+        "rotator_cuff"
+      ]
     }
   }
 ]

@@ -1,19 +1,106 @@
+// Medical Scanner Loading System
+const loadingMessages = [
+    'INITIALIZING MEDICAL SYSTEMS...',
+    'LOADING AI TRIAGE PROTOCOLS...',
+    'SYSTEM READY - WELCOME MEDICAL TEAM'
+];
+
+function typewriterEffect(element, text, speed = 50) {
+    return new Promise((resolve) => {
+        let i = 0;
+        element.textContent = '';
+        const timer = setInterval(() => {
+            if (i < text.length) {
+                element.textContent += text.charAt(i);
+                i++;
+            } else {
+                clearInterval(timer);
+                resolve();
+            }
+        }, speed);
+    });
+}
+
+async function runMedicalLoader() {
+    const loaderElement = document.getElementById('medical-loader');
+    const typewriterElement = document.getElementById('loading-typewriter');
+    
+    if (!loaderElement || !typewriterElement) {
+        console.error('Medical loader elements not found');
+        // Fallback: initialize app immediately
+        init();
+        return;
+    }
+    
+    try {
+        console.log('Starting medical loader...');
+        
+        // Run through all loading messages quickly
+        for (let i = 0; i < loadingMessages.length; i++) {
+            await typewriterEffect(typewriterElement, loadingMessages[i], 30);
+            
+            // Very short pause between messages
+            if (i < loadingMessages.length - 1) {
+                await new Promise(resolve => setTimeout(resolve, 200));
+            }
+        }
+        
+        console.log('Loading messages complete, starting fade out...');
+        
+        // Very short final pause before fade out
+        await new Promise(resolve => setTimeout(resolve, 300));
+        
+        // Quick fade out
+        loaderElement.style.transition = 'opacity 0.5s ease-out';
+        loaderElement.style.opacity = '0';
+        
+        // Remove from DOM after quick fade
+        setTimeout(() => {
+            if (loaderElement.parentNode) {
+                loaderElement.remove();
+            }
+            console.log('Medical loader removed');
+            // Initialize app first, then trigger banner animation
+            init().then(() => {
+                triggerBannerCelebration();
+            });
+        }, 500);
+        
+    } catch (error) {
+        console.error('Error in medical loader:', error);
+        // Fallback: remove loader immediately if there's an error
+        if (loaderElement && loaderElement.parentNode) {
+            loaderElement.remove();
+        }
+        init();
+    }
+}
+
+// Start medical loader when page loads
+document.addEventListener('DOMContentLoaded', () => {
+    console.log('DOM loaded, starting medical loader...');
+    runMedicalLoader();
+});
+
+// Main application variables
 let scansData = [];
 let currentSort = 'priority';
 const priorityOrder = { urgent: 4, high: 3, medium: 2, low: 1 };
 
 // Initialize the app
 async function init() {
+    console.log('Initializing main app...');
     try {
-        await loadScans();
-        updateStats();
-        updatePriorityDashboard();
-        renderScans();
-        renderCharts();
         setupEventListeners();
+        await loadData();
+        filterAndRenderScans();
+        renderCharts();
+        console.log('App initialization complete');
+        return Promise.resolve();
     } catch (error) {
         console.error('Error initializing app:', error);
-        showError('Failed to load scan data. Please refresh the page.');
+        showEmptyState('Failed to load scan data. Please refresh the page.');
+        return Promise.reject(error);
     }
 }
 
@@ -93,766 +180,701 @@ function setupEventListeners() {
             closeModal();
         }
     });
+    
+    renderScans(filteredScans);
+    updateStats();
+    updatePriorityDashboard();
+}
+
+// Render scans with enhanced AI triage highlighting and improved buttons
+function renderScans(scans) {
+    console.log('renderScans called with', scans.length, 'scans');
+    const scansList = document.getElementById('scansList');
+    
+    if (!scansList) {
+        console.error('scansList container not found');
+        return;
+    }
+    
+    if (scans.length === 0) {
+        console.log('No scans to render, showing empty state');
+        showEmptyState('No scans found matching the current filter.');
+        return;
+    }
+    
+    console.log('Rendering', scans.length, 'scans to container');
+    
+    scansList.innerHTML = scans.map(scan => {
+        // Handle priority data structure - it's an object with level property
+        const priorityLevel = scan.priority?.level || scan.priority || 'medium';
+        const priorityScore = scan.priority?.score || 50;
+        const confidence = scan.priority?.confidence || 85;
+        
+        return `
+        <div class="scan-card ${priorityLevel}" data-scan-id="${scan.scanId}">
+            <div class="scan-header">
+                <div class="scan-meta">
+                    <div class="scan-date">${new Date(scan.scanDate).toLocaleDateString()}</div>
+                </div>
+                <div class="scan-id">ID: ${scan.scanId}</div>
+            </div>
+            
+            <!-- AI Triage Section - Highlighted with Priority -->
+            <div class="ai-triage-section">
+                <div class="ai-header">
+                    <span class="ai-badge">🧠 AI TRIAGE</span>
+                    <div class="priority-badge ${priorityLevel}">
+                        <span class="priority-level">${priorityLevel.toUpperCase()}</span>
+                        <span class="priority-score">${priorityScore}%</span>
+                    </div>
+                </div>
+                <div class="ai-metrics">
+                    <div class="confidence-indicator">Confidence: ${confidence}%</div>
+                    <div class="ai-score">
+                        <span class="score-label">Risk Assessment:</span>
+                        <span class="score-value priority-${priorityLevel}">${priorityScore}/100</span>
+                    </div>
+                    <div class="ai-recommendation-preview">
+                        ${scan.priority?.aiAnalysis ? scan.priority.aiAnalysis.substring(0, 80) + '...' : 'AI analysis available - click for details'}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="scan-body">
+                <div class="patient-section">
+                    <h4 class="patient-name">👤 ${scan.patientName}</h4>
+                    <div class="patient-details">Age: ${scan.age}y</div>
+                </div>
+                
+                <div class="scan-details">
+                    <div class="detail-row">
+                        <span class="label">🩻 Scan Type:</span>
+                        <span class="value">${scan.scanType}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="label">🦴 Body Part:</span>
+                        <span class="value">${scan.bodyPart}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="label">🔍 Findings:</span>
+                        <span class="value">${scan.findings}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="label">👨‍⚕️ Consultant:</span>
+                        <span class="value">${scan.consultant}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="label">📋 Status:</span>
+                        <span class="value status-${scan.status.toLowerCase().replace(/\s+/g, '-')}">${scan.status}</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="scan-actions">
+                <button class="btn btn-primary" onclick="viewScan('${scan.scanId}')">
+                    <i class="icon">📋</i> View Details
+                </button>
+                <button class="btn btn-secondary" onclick="showAIAnalysis('${scan.scanId}')">
+                    <i class="icon">🧠</i> AI Analysis
+                </button>
+                <button class="btn btn-accent" onclick="viewImage('${scan.scanId}')">
+                    <i class="icon">🩻</i> View Scan
+                </button>
+            </div>
+        </div>
+        `;
+    }).join('');
+    
+    console.log('Scans rendered successfully to DOM');
+}
+
+// Show empty state
+function showEmptyState(message) {
+    const scansList = document.getElementById('scansList');
+    if (scansList) {
+        scansList.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-icon">🔍</div>
+                <h3>No Scans Found</h3>
+                <p>${message}</p>
+            </div>
+        `;
+    }
 }
 
 // Update stats
 function updateStats() {
     const totalScans = scansData.length;
-    const pendingReview = scansData.filter(scan => scan.status === 'Pending Review').length;
-    const urgentPriority = scansData.filter(scan => scan.priority?.level === 'urgent').length;
+    const pendingScans = scansData.filter(scan => scan.status === 'Pending Review').length;
+    const urgentScans = scansData.filter(scan => {
+        const priority = scan.priority?.level || scan.priority;
+        return priority === 'urgent';
+    }).length;
+    const highPriorityScans = scansData.filter(scan => {
+        const priority = scan.priority?.level || scan.priority;
+        return priority === 'high';
+    }).length;
+    const mediumPriorityScans = scansData.filter(scan => {
+        const priority = scan.priority?.level || scan.priority;
+        return priority === 'medium';
+    }).length;
+    const lowPriorityScans = scansData.filter(scan => {
+        const priority = scan.priority?.level || scan.priority;
+        return priority === 'low';
+    }).length;
     
-    document.getElementById('totalScans').textContent = totalScans;
-    document.getElementById('pendingReview').textContent = pendingReview;
-    document.getElementById('urgentPriority').textContent = urgentPriority;
+    // Update main stats
+    const totalScansElement = document.getElementById('totalScans');
+    const pendingReviewElement = document.getElementById('pendingReview');
+    const urgentPriorityElement = document.getElementById('urgentPriority');
+    
+    if (totalScansElement) totalScansElement.textContent = totalScans;
+    if (pendingReviewElement) pendingReviewElement.textContent = pendingScans;
+    if (urgentPriorityElement) urgentPriorityElement.textContent = urgentScans;
+    
+    // Update priority dashboard
+    const urgentCountElement = document.getElementById('urgent-count');
+    const highCountElement = document.getElementById('high-count');
+    const mediumCountElement = document.getElementById('medium-count');
+    const lowCountElement = document.getElementById('low-count');
+    
+    if (urgentCountElement) urgentCountElement.textContent = urgentScans;
+    if (highCountElement) highCountElement.textContent = highPriorityScans;
+    if (mediumCountElement) mediumCountElement.textContent = mediumPriorityScans;
+    if (lowCountElement) lowCountElement.textContent = lowPriorityScans;
 }
 
-// Apply filters and sorting
-function applyFiltersAndSort() {
-    let filteredScans = [...scansData];
+// Update priority dashboard
+function updatePriorityDashboard() {
+    const urgentCount = scansData.filter(scan => {
+        const priority = scan.priority?.level || scan.priority;
+        return priority === 'urgent';
+    }).length;
+    const highCount = scansData.filter(scan => {
+        const priority = scan.priority?.level || scan.priority;
+        return priority === 'high';
+    }).length;
+    const mediumCount = scansData.filter(scan => {
+        const priority = scan.priority?.level || scan.priority;
+        return priority === 'medium';
+    }).length;
+    const lowCount = scansData.filter(scan => {
+        const priority = scan.priority?.level || scan.priority;
+        return priority === 'low';
+    }).length;
     
-    // Apply status filter
-    const statusFilter = document.getElementById('statusFilter').value;
-    if (statusFilter !== 'all') {
-        filteredScans = filteredScans.filter(scan => scan.status === statusFilter);
-    }
+    const urgentElement = document.getElementById('urgent-count');
+    const highElement = document.getElementById('high-count');
+    const mediumElement = document.getElementById('medium-count');
+    const lowElement = document.getElementById('low-count');
     
-    // Apply search filter
-    const searchTerm = document.getElementById('searchBox').value.toLowerCase();
-    if (searchTerm) {
-        filteredScans = filteredScans.filter(scan => 
-            (scan.patientId?.toLowerCase() || '').includes(searchTerm) ||
-            (scan.patientName?.toLowerCase() || '').includes(searchTerm) ||
-            (scan.bodyPart?.toLowerCase() || '').includes(searchTerm)
-        );
-    }
-    
-    // Apply sorting
-    const sortBy = document.getElementById('priority-sort')?.value || currentSort;
-    if (sortBy === 'priority') {
-        filteredScans.sort((a, b) => {
-            const aPriority = priorityOrder[a.priority?.level || 'low'];
-            const bPriority = priorityOrder[b.priority?.level || 'low'];
-            if (bPriority !== aPriority) return bPriority - aPriority;
-            
-            const aScore = a.priority?.score || 0;
-            const bScore = b.priority?.score || 0;
-            return bScore - aScore;
-        });
-    } else if (sortBy === 'date') {
-        filteredScans.sort((a, b) => new Date(b.scanDate) - new Date(a.scanDate));
-    } else if (sortBy === 'patient') {
-        filteredScans.sort((a, b) => (a.patientName || '').localeCompare(b.patientName || ''));
-    }
-    
-    return filteredScans;
+    if (urgentElement) urgentElement.textContent = urgentCount;
+    if (highElement) highElement.textContent = highCount;
+    if (mediumElement) mediumElement.textContent = mediumCount;
+    if (lowElement) lowElement.textContent = lowCount;
 }
 
-// Render scans
-function renderScans() {
-    const filteredScans = applyFiltersAndSort();
-    const container = document.getElementById('scansList');
-    
-    if (!container) {
-        console.error('Scans container not found');
-        return;
-    }
-    
-    if (filteredScans.length === 0) {
-        container.innerHTML = '<div class="no-scans">No scans match your current filters.</div>';
-        return;
-    }
-    
-    const scansHTML = filteredScans.map(scan => {
-        const priority = scan.priority || { level: 'low', score: 0, aiAnalysis: 'No analysis available', confidence: 0, flags: [] };
-        
-        return `
-            <div class="scan-card ${priority.level}-priority" onclick="openScanDetails('${scan.scanId}')">
-                <div class="scan-header">
-                    <div class="scan-info">
-                        <h3>${scan.patientName || 'Unknown Patient'}</h3>
-                        <p class="patient-id">ID: ${scan.patientId}</p>
-                        <p class="scan-meta">${scan.bodyPart} • ${scan.scanType} • ${formatDate(scan.scanDate)}</p>
-                    </div>
-                    <div class="scan-image">
-                        <img src="${scan.image || 'images/placeholder.png'}" alt="${scan.bodyPart} scan" onerror="this.style.display='none'">
-                    </div>
-                    <div class="priority-info">
-                        <span class="priority-badge priority-${priority.level}">
-                            ${priority.level.toUpperCase()}
-                        </span>
-                        <span class="priority-score">Score: ${priority.score}</span>
-                    </div>
-                </div>
-                
-                <div class="scan-status">
-                    <span class="status-badge status-${scan.status.toLowerCase().replace(/\s+/g, '-')}">
-                        ${scan.status}
-                    </span>
-                    <span class="consultant">Consultant: ${scan.consultant}</span>
-                </div>
-                
-                <div class="scan-findings">
-                    <strong>Findings:</strong> ${scan.findings || 'No findings recorded'}
-                </div>
-                
-                <div class="ai-analysis">
-                    <h4>🤖 AI Analysis 
-                        <span class="confidence-score">
-                            ${priority.confidence}%
-                            <div class="confidence-bar">
-                                <div class="confidence-fill" style="width: ${priority.confidence}%"></div>
-                            </div>
-                        </span>
-                    </h4>
-                    <p>${priority.aiAnalysis}</p>
-                    <div class="priority-flags">
-                        ${priority.flags.map(flag => 
-                            `<span class="flag-tag">${flag.replace(/_/g, ' ')}</span>`
-                        ).join('')}
-                    </div>
-                </div>
-                
-                <div class="scan-actions">
-                    ${scan.status === 'Completed' ? 
-                        `<button class="action-btn disabled" disabled>
-                            ✅ Review Completed
-                        </button>` :
-                        `<button class="action-btn primary" onclick="event.stopPropagation(); startReview('${scan.scanId}')">
-                            ${scan.status === 'In Progress' ? '📝 Continue Review' : '🔍 Start Review'}
-                        </button>`
-                    }
-                    ${scan.status !== 'Completed' ? 
-                        `<button class="action-btn secondary" onclick="event.stopPropagation(); updateScanStatus('${scan.scanId}', 'Completed')">
-                            Complete
-                        </button>` : ''
-                    }
-                </div>
-            </div>
-        `;
-    }).join('');
-    
-    container.innerHTML = scansHTML;
-}
-
-// Format date for display
-function formatDate(dateString) {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', { 
-        month: 'short', 
-        day: 'numeric', 
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-    });
-}
-
-// Update scan status
-async function updateScanStatus(scanId, newStatus) {
-    try {
-        const response = await fetch(`/api/scans/${scanId}`, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ status: newStatus })
-        });
-        
-        if (response.ok) {
-            const updatedScan = await response.json();
-            const scanIndex = scansData.findIndex(scan => scan.scanId === scanId);
-            if (scanIndex !== -1) {
-                scansData[scanIndex] = updatedScan;
-                updateStats();
-                updatePriorityDashboard();
-                renderScans();
-            }
-        }
-    } catch (error) {
-        console.error('Error updating scan status:', error);
-        showError('Failed to update scan status.');
-    }
-}
-
-// Start review with form popup
-function startReview(scanId) {
+// Enhanced View scan with full-width modal and AI dashboard
+function viewScan(scanId) {
     const scan = scansData.find(s => s.scanId === scanId);
     if (!scan) return;
     
-    const modalContent = `
-        <div class="modal-content review-form">
-            <h2>🔍 Start Radiological Review</h2>
-            <div class="review-header">
-                <div class="review-scan-info">
-                    <img src="${scan.image || 'images/placeholder.png'}" alt="${scan.bodyPart} scan" class="review-image">
-                    <div class="review-details">
-                        <h3>${scan.patientName} (${scan.patientId})</h3>
-                        <p><strong>Body Part:</strong> ${scan.bodyPart}</p>
-                        <p><strong>Scan Type:</strong> ${scan.scanType}</p>
-                        <p><strong>Date:</strong> ${formatDate(scan.scanDate)}</p>
-                        <div class="ai-preliminary">
-                            <strong>AI Preliminary Analysis:</strong>
-                            <p>${scan.priority?.aiAnalysis || 'No AI analysis available'}</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <form id="reviewForm" class="review-form-content">
-                <div class="form-group">
-                    <label for="reviewNotes">Initial Review Notes:</label>
-                    <textarea id="reviewNotes" rows="4" placeholder="Enter your initial observations and findings..."></textarea>
-                </div>
-                
-                <div class="form-group">
-                    <label for="reviewPriority">Confirm/Update Priority:</label>
-                    <select id="reviewPriority">
-                        <option value="urgent" ${scan.priority?.level === 'urgent' ? 'selected' : ''}>🔴 Urgent - Immediate attention required</option>
-                        <option value="high" ${scan.priority?.level === 'high' ? 'selected' : ''}>🟠 High - Prompt attention needed</option>
-                        <option value="medium" ${scan.priority?.level === 'medium' ? 'selected' : ''}>🟡 Medium - Standard timeframe</option>
-                        <option value="low" ${scan.priority?.level === 'low' ? 'selected' : ''}>🟢 Low - Routine review</option>
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <label for="nextAction">Next Action Required:</label>
-                    <select id="nextAction">
-                        <option value="">Select next action...</option>
-                        <option value="additional_imaging">Additional imaging required</option>
-                        <option value="specialist_referral">Specialist referral needed</option>
-                        <option value="urgent_consultation">Urgent consultation required</option>
-                        <option value="routine_followup">Routine follow-up</option>
-                        <option value="patient_callback">Patient callback needed</option>
-                        <option value="no_further_action">No further action required</option>
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <label for="estimatedTime">Estimated Review Time (minutes):</label>
-                    <input type="number" id="estimatedTime" min="5" max="120" value="15" placeholder="15">
-                </div>
-                
-                <div class="form-actions">
-                    <button type="button" onclick="submitReview('${scanId}')" class="btn-primary">
-                        📝 Start Review
-                    </button>
-                    <button type="button" onclick="closeModal()" class="btn-secondary">
-                        ❌ Cancel
-                    </button>
-                </div>
-            </form>
-        </div>
-    `;
+    const modal = document.getElementById('scanModal');
+    if (!modal) return;
     
-    showModal(modalContent);
-}
+    const modalContent = modal.querySelector('.modal-content');
+    if (!modalContent) return;
+    
+    // Use image path from scan data, or fallback to mapping
+    const imagePath = scan.image || (() => {
+        const imageMap = {
+            'Left Ankle': 'images/left_ankle.png',
+            'Left Shoulder': 'images/left_shoulder.png',
+            'Right Foot': 'images/right_foot.png',
+            'Right Knee': 'images/right_knee.png',
+            'Right Wrist': 'images/right_wrist.png',
+            'Left Hip': 'images/left_hip.png'
+        };
+        return imageMap[scan.bodyPart] || 'images/placeholder.png';
+    })();
 
-// Submit review form
-async function submitReview(scanId) {
-    const reviewNotes = document.getElementById('reviewNotes').value;
-    const reviewPriority = document.getElementById('reviewPriority').value;
-    const nextAction = document.getElementById('nextAction').value;
-    const estimatedTime = document.getElementById('estimatedTime').value;
-    
-    // Here you could send this data to your server
-    console.log('Review submitted:', {
-        scanId,
-        reviewNotes,
-        reviewPriority,
-        nextAction,
-        estimatedTime
-    });
-    
-    // For now, just update the status and show a confirmation
-    await updateScanStatus(scanId, 'In Progress');
-    
-    // Show confirmation message
-    showNotification('Review started successfully! The scan has been marked as "In Progress".', 'success');
-    
-    closeModal();
-}
-
-// Open scan details modal
-function openScanDetails(scanId) {
-    const scan = scansData.find(s => s.scanId === scanId);
-    if (!scan) return;
-    
-    const priority = scan.priority || {};
-    
-    const modalContent = `
-        <div class="modal-content">
-            <h2>Scan Details</h2>
+    modalContent.innerHTML = `
+        <div class="modal-full-width-content">
             <div class="modal-header">
-                <div class="modal-scan-image">
-                    <img src="${scan.image || 'images/placeholder.png'}" alt="${scan.bodyPart} scan" onerror="this.style.display='none'">
-                </div>
-                <div class="modal-priority-info">
-                    <span class="priority-badge priority-${priority.level}">${priority.level?.toUpperCase()}</span>
-                    <div class="priority-score-large">Priority Score: ${priority.score || 0}</div>
-                    <div class="confidence-score">
-                        AI Confidence: ${priority.confidence || 0}%
-                        <div class="confidence-bar">
-                            <div class="confidence-fill" style="width: ${priority.confidence || 0}%"></div>
-                        </div>
+                <h2>📋 Scan Details - ${scan.patientName}</h2>
+                <span class="close" onclick="closeModal('scanModal')">&times;</span>
+            </div>
+            
+            <!-- Scan Image Section -->
+            <div class="modal-section">
+                <h3>🩻 Scan Image</h3>
+                <div class="scan-image-container">
+                    <div class="modal-scan-image">
+                        <img src="${imagePath}" alt="${scan.bodyPart} X-Ray">
+                    </div>
+                    <div class="scan-image-info">
+                        <p><strong>Body Part:</strong> ${scan.bodyPart}</p>
+                        <p><strong>Scan Type:</strong> ${scan.scanType || 'X-Ray'}</p>
+                        <p><strong>Date Taken:</strong> ${new Date(scan.scanDate).toLocaleDateString()}</p>
                     </div>
                 </div>
             </div>
-            <div class="detail-grid">
-                <div class="detail-item">
-                    <strong>Patient:</strong> ${scan.patientName || 'Unknown'} (${scan.patientId})
-                </div>
-                <div class="detail-item">
-                    <strong>Age:</strong> ${scan.age || 'N/A'}
-                </div>
-                <div class="detail-item">
-                    <strong>Body Part:</strong> ${scan.bodyPart}
-                </div>
-                <div class="detail-item">
-                    <strong>Scan Type:</strong> ${scan.scanType}
-                </div>
-                <div class="detail-item">
-                    <strong>Date:</strong> ${formatDate(scan.scanDate)}
-                </div>
-                <div class="detail-item">
-                    <strong>Status:</strong> ${scan.status}
-                </div>
-                <div class="detail-item">
-                    <strong>Priority:</strong> <span class="priority-badge priority-${priority.level}">${priority.level?.toUpperCase()}</span> (Score: ${priority.score || 0})
-                </div>
-                <div class="detail-item">
-                    <strong>Consultant:</strong> ${scan.consultant}
-                </div>
-                <div class="detail-item full-width">
-                    <strong>Description:</strong> ${scan.description || 'No description available'}
-                </div>
-                <div class="detail-item full-width">
-                    <strong>Findings:</strong> ${scan.findings || 'No findings recorded'}
-                </div>
-                <div class="detail-item full-width">
-                    <strong>AI Analysis:</strong> ${priority.aiAnalysis || 'No AI analysis available'}
-                </div>
-                <div class="detail-item full-width">
-                    <strong>AI Confidence:</strong> ${priority.confidence || 0}%
-                </div>
-                <div class="detail-item full-width">
-                    <strong>Flags:</strong> ${(priority.flags || []).join(', ') || 'None'}
+            
+            <!-- AI Dashboard Section -->
+            <div class="ai-dashboard">
+                <h3>🧠 AI Triage Analysis</h3>
+                <div class="ai-dashboard-content">
+                    <div class="ai-metric-card">
+                        <h4>Priority Assessment</h4>
+                        <div class="priority-badge ${scan.priority?.level || 'medium'}">
+                            ${(scan.priority?.level || 'medium').toUpperCase()} - ${scan.priority?.score || 50}%
+                        </div>
+                        <p>Confidence: ${scan.priority?.confidence || 85}%</p>
+                    </div>
+                    <div class="ai-metric-card">
+                        <h4>Clinical Priority</h4>
+                        <p>${(scan.priority?.level || 'medium').toUpperCase()}</p>
+                    </div>
+                    <div class="ai-metric-card">
+                        <h4>Response Time</h4>
+                        <p>${scan.priority?.level === 'urgent' ? 'Immediate' : scan.priority?.level === 'high' ? 'Same Day' : 'Standard'}</p>
+                    </div>
                 </div>
             </div>
-            <button onclick="closeModal()" class="close-btn">Close</button>
+            <!-- Patient & Scan Information -->
+            <div class="modal-section">
+                <h3>👤 Patient & Scan Details</h3>
+                <div class="modal-content-grid">
+                    <div class="detail-row">
+                        <span class="label">Name:</span>
+                        <span class="value">${scan.patientName}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="label">Age:</span>
+                        <span class="value">${scan.age}y</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="label">Body Part:</span>
+                        <span class="value">${scan.bodyPart}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="label">Date:</span>
+                        <span class="value">${new Date(scan.scanDate).toLocaleDateString()}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="label">Status:</span>
+                        <span class="value status-${scan.status.toLowerCase().replace(/\s+/g, '-')}">${scan.status}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="label">Consultant:</span>
+                        <span class="value">${scan.consultant}</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Findings -->
+            <div class="modal-section">
+                <h3>🔍 Clinical Findings</h3>
+                <div class="findings-content">
+                    <p>${scan.findings}</p>
+                </div>
+            </div>
+            
+            <!-- Actions -->
+            <div class="modal-actions">
+                <button class="btn btn-primary" onclick="showAIAnalysis('${scan.scanId}')">
+                    <i class="icon">🧠</i> View AI Analysis
+                </button>
+                <button class="btn btn-accent" onclick="viewImage('${scan.scanId}')">
+                    <i class="icon">🩻</i> View Image
+                </button>
+                <button class="btn btn-secondary" onclick="closeModal('scanModal')">
+                    <i class="icon">❌</i> Close
+                </button>
+            </div>
         </div>
     `;
     
-    showModal(modalContent);
+    modal.style.display = 'block';
 }
 
-// Modal functions
-function showModal(content) {
-    const modal = document.createElement('div');
-    modal.className = 'modal-overlay';
-    modal.innerHTML = content;
-    modal.addEventListener('click', (e) => {
-        if (e.target === modal) closeModal();
-    });
-    document.body.appendChild(modal);
-}
-
-function closeModal() {
-    const modal = document.querySelector('.modal-overlay');
-    if (modal) modal.remove();
-}
-
-// Show error message
-function showError(message) {
-    const container = document.getElementById('scansList');
-    if (container) {
-        container.innerHTML = `<div class="error-message">${message}</div>`;
-    }
-}
-
-// Show notification
-function showNotification(message, type = 'info') {
-    const notification = document.createElement('div');
-    notification.className = `notification ${type}`;
-    notification.textContent = message;
+// Enhanced AI Analysis with full dashboard
+function showAIAnalysis(scanId) {
+    const scan = scansData.find(s => s.scanId === scanId);
+    if (!scan) return;
     
-    // Style the notification
-    notification.style.cssText = `
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        padding: 12px 20px;
-        border-radius: 8px;
-        color: white;
-        font-weight: 500;
-        z-index: 2000;
-        max-width: 400px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-        ${type === 'success' ? 'background: #059669;' : ''}
-        ${type === 'error' ? 'background: #dc2626;' : ''}
-        ${type === 'info' ? 'background: #2563eb;' : ''}
+    const modal = document.getElementById('aiModal');
+    if (!modal) return;
+    
+    const modalContent = modal.querySelector('.modal-content');
+    if (!modalContent) return;
+    
+    // Generate mock AI analysis if not present
+    const aiAnalysis = scan.priority?.aiAnalysis || 'Comprehensive AI analysis indicates standard orthopedic assessment required with attention to patient comfort and mobility.';
+    const confidence = scan.priority?.confidence || 85;
+    const priorityScore = scan.priority?.score || 50;
+    
+    modalContent.innerHTML = `
+        <div class="modal-full-width-content">
+            <div class="modal-header">
+                <h2>🧠 AI Analysis - ${scan.patientName}</h2>
+                <span class="close" onclick="closeModal('aiModal')">&times;</span>
+            </div>
+            
+            <!-- AI Dashboard Section -->
+            <div class="ai-dashboard">
+                <h3>🧠 Complete AI Triage Assessment</h3>
+                <div class="ai-dashboard-content">
+                    <div class="ai-metric-card">
+                        <h4>Overall Priority Score</h4>
+                        <div class="score-display">
+                            <div class="score-value priority-${scan.priority?.level || 'medium'}">${priorityScore}/100</div>
+                            <div class="confidence-badge">Confidence: ${confidence}%</div>
+                        </div>
+                    </div>
+                    <div class="ai-metric-card">
+                        <h4>Risk Assessment</h4>
+                        <div class="risk-indicators">
+                            <div class="risk-item ${scan.priority?.level || 'medium'}">
+                                <span>Clinical Priority:</span>
+                                <span>${(scan.priority?.level || 'medium').toUpperCase()}</span>
+                            </div>
+                            <div class="risk-item">
+                                <span>Response Required:</span>
+                                <span>${scan.priority?.level === 'urgent' ? 'Immediate' : scan.priority?.level === 'high' ? 'Same Day' : 'Standard'}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="ai-metric-card">
+                        <h4>Treatment Pathway</h4>
+                        <p>AI recommends standard clinical review protocol.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Clinical Flags -->
+            <div class="clinical-flags">
+                <h4>🚨 AI-Identified Clinical Flags</h4>
+                <div class="flag-item">
+                    <span>⚠️</span>
+                    <span>Priority: ${(scan.priority?.level || 'medium').toUpperCase()}</span>
+                </div>
+                <div class="flag-item">
+                    <span>🎯</span>
+                    <span>Confidence: ${confidence}%</span>
+                </div>
+            </div>
+            
+            <!-- Detailed Analysis -->
+            <div class="modal-section">
+                <h3>📊 AI Analysis Summary</h3>
+                <div class="analysis-content">
+                    <div class="analysis-section">
+                        <h4>Assessment</h4>
+                        <p>${aiAnalysis}</p>
+                    </div>
+                    <div class="analysis-section">
+                        <h4>Recommendations</h4>
+                        <ul>
+                            <li>Continue with ${scan.consultant} consultation</li>
+                            <li>Follow standard ${scan.bodyPart.toLowerCase()} protocols</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Actions -->
+            <div class="modal-actions">
+                <button class="btn btn-primary" onclick="viewScan('${scan.scanId}')">
+                    <i class="icon">📋</i> View Full Scan Details
+                </button>
+                <button class="btn btn-accent" onclick="viewImage('${scan.scanId}')">
+                    <i class="icon">🩻</i> View Image
+                </button>
+                <button class="btn btn-secondary" onclick="closeModal('aiModal')">
+                    <i class="icon">❌</i> Close
+                </button>
+            </div>
+        </div>
     `;
     
-    document.body.appendChild(notification);
-    
-    // Auto-remove after 3 seconds
-    setTimeout(() => {
-        if (notification.parentNode) {
-            notification.parentNode.removeChild(notification);
-        }
-    }, 3000);
+    modal.style.display = 'block';
 }
 
-// Setup event listeners
-function setupEventListeners() {
-    const statusFilter = document.getElementById('statusFilter');
-    const searchBox = document.getElementById('searchBox');
-    const prioritySort = document.getElementById('priority-sort');
+// View image
+function viewImage(scanId) {
+    const scan = scansData.find(s => s.scanId === scanId);
+    if (!scan) return;
     
-    if (statusFilter) {
-        statusFilter.addEventListener('change', renderScans);
-    }
+    const modal = document.getElementById('imageModal');
+    if (!modal) return;
     
-    if (searchBox) {
-        searchBox.addEventListener('input', renderScans);
-    }
+    const modalBody = document.getElementById('imageModalBody');
+    if (!modalBody) return;
     
-    if (prioritySort) {
-        prioritySort.addEventListener('change', (e) => {
-            currentSort = e.target.value;
-            renderScans();
-        });
+    // Use image path from scan data, or fallback to mapping
+    const imagePath = scan.image || (() => {
+        const imageMap = {
+            'Left Ankle': 'images/left_ankle.png',
+            'Left Shoulder': 'images/left_shoulder.png',
+            'Right Foot': 'images/right_foot.png',
+            'Right Knee': 'images/right_knee.png',
+            'Right Wrist': 'images/right_wrist.png',
+            'Left Hip': 'images/left_hip.png'
+        };
+        return imageMap[scan.bodyPart] || 'images/placeholder.png';
+    })();
+    
+    modalBody.innerHTML = `
+        <div class="modal-header">
+            <h2>🩻 ${scan.bodyPart} - ${scan.patientName}</h2>
+            <span class="close" onclick="closeModal('imageModal')">&times;</span>
+        </div>
+        <div class="image-container">
+            <img src="${imagePath}" alt="${scan.bodyPart} X-Ray" class="scan-image">
+            <div class="image-info">
+                <p><strong>Patient:</strong> ${scan.patientName}</p>
+                <p><strong>Body Part:</strong> ${scan.bodyPart}</p>
+                <p><strong>Date:</strong> ${new Date(scan.scanDate).toLocaleDateString()}</p>
+                <p><strong>Findings:</strong> ${scan.findings}</p>
+            </div>
+        </div>
+        <div class="modal-actions">
+            <button class="btn btn-primary" onclick="viewScan('${scan.scanId}')">
+                <i class="icon">📋</i> View Details
+            </button>
+            <button class="btn btn-secondary" onclick="showAIAnalysis('${scan.scanId}')">
+                <i class="icon">🧠</i> AI Analysis
+            </button>
+            <button class="btn btn-secondary" onclick="closeModal('imageModal')">
+                <i class="icon">❌</i> Close
+            </button>
+        </div>
+    `;
+    
+    modal.style.display = 'block';
+}
+
+// Close modal
+function closeModal(modalId) {
+    const modal = document.getElementById(modalId);
+    if (modal) {
+        modal.style.display = 'none';
     }
 }
 
-// Initialize when DOM is loaded
-document.addEventListener('DOMContentLoaded', init);
+// Close modal when clicking outside
+window.onclick = function(event) {
+    if (event.target.classList.contains('modal')) {
+        event.target.style.display = 'none';
+    }
+}
 
-// Chart rendering functions
+// Render charts
 function renderCharts() {
-    renderScanTypeChart();
-    renderConfidenceChart();
+    if (typeof Chart === 'undefined') {
+        console.log('Chart.js not loaded, skipping chart rendering');
+        return;
+    }
+    
+    console.log('Rendering charts with', scansData.length, 'scans');
     renderPriorityChart();
-    renderStatusChart();
     renderBodyPartsChart();
+    renderConfidenceChart();
+    renderStatusChart();
+    renderScanTypeChart();
     renderDateChart();
 }
 
-// Scan Types Pie Chart
-function renderScanTypeChart() {
-    const scanTypes = {};
-    scansData.forEach(scan => {
-        scanTypes[scan.scanType] = (scanTypes[scan.scanType] || 0) + 1;
+// Chart rendering functions
+function renderPriorityChart() {
+    const ctx = document.getElementById('priorityChart');
+    if (!ctx || typeof Chart === 'undefined') return;
+    
+    const priorityCounts = {
+        urgent: scansData.filter(scan => (scan.priority?.level || scan.priority) === 'urgent').length,
+        high: scansData.filter(scan => (scan.priority?.level || scan.priority) === 'high').length,
+        medium: scansData.filter(scan => (scan.priority?.level || scan.priority) === 'medium').length,
+        low: scansData.filter(scan => (scan.priority?.level || scan.priority) === 'low').length
+    };
+    
+    new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Urgent', 'High', 'Medium', 'Low'],
+            datasets: [{
+                data: [priorityCounts.urgent, priorityCounts.high, priorityCounts.medium, priorityCounts.low],
+                backgroundColor: ['#dc2626', '#ea580c', '#ca8a04', '#16a34a'],
+                borderWidth: 2,
+                borderColor: '#fff'
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { position: 'bottom' },
+                title: { display: true, text: 'Priority Distribution' }
+            }
+        }
     });
+}
 
+function renderBodyPartsChart() {
+    const ctx = document.getElementById('bodyPartsChart');
+    if (!ctx || typeof Chart === 'undefined') return;
+    
+    const bodyPartCounts = scansData.reduce((acc, scan) => {
+        acc[scan.bodyPart] = (acc[scan.bodyPart] || 0) + 1;
+        return acc;
+    }, {});
+    
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: Object.keys(bodyPartCounts),
+            datasets: [{
+                label: 'Number of Scans',
+                data: Object.values(bodyPartCounts),
+                backgroundColor: '#3b82f6',
+                borderColor: '#1d4ed8',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                title: { display: true, text: 'Scans by Body Part' }
+            },
+            scales: {
+                y: { beginAtZero: true }
+            }
+        }
+    });
+}
+
+function renderConfidenceChart() {
+    const ctx = document.getElementById('confidenceChart');
+    if (!ctx || typeof Chart === 'undefined') return;
+    
+    const confidenceData = scansData.map(scan => scan.priority?.confidence || 85);
+    
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: scansData.map(scan => scan.scanId),
+            datasets: [{
+                label: 'AI Confidence %',
+                data: confidenceData,
+                borderColor: '#10b981',
+                backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                borderWidth: 2,
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                title: { display: true, text: 'AI Confidence Levels' }
+            },
+            scales: {
+                y: { beginAtZero: true, max: 100 }
+            }
+        }
+    });
+}
+
+function renderDateChart() {
+    const ctx = document.getElementById('dateChart');
+    if (!ctx || typeof Chart === 'undefined') return;
+    
+    const dateData = scansData.reduce((acc, scan) => {
+        const date = new Date(scan.scanDate).toDateString();
+        acc[date] = (acc[date] || 0) + 1;
+        return acc;
+    }, {});
+    
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: Object.keys(dateData),
+            datasets: [{
+                label: 'Scans per Day',
+                data: Object.values(dateData),
+                borderColor: '#f59e0b',
+                backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                borderWidth: 2,
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                title: { display: true, text: 'Scan Timeline' }
+            },
+            scales: {
+                y: { beginAtZero: true }
+            }
+        }
+    });
+}
+
+function renderStatusChart() {
+    const ctx = document.getElementById('statusChart');
+    if (!ctx || typeof Chart === 'undefined') return;
+    
+    const statusData = scansData.reduce((acc, scan) => {
+        acc[scan.status] = (acc[scan.status] || 0) + 1;
+        return acc;
+    }, {});
+    
+    new Chart(ctx, {
+        type: 'pie',
+        data: {
+            labels: Object.keys(statusData),
+            datasets: [{
+                data: Object.values(statusData),
+                backgroundColor: ['#8b5cf6', '#06b6d4', '#84cc16', '#f97316', '#ef4444'],
+                borderWidth: 2,
+                borderColor: '#fff'
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { position: 'bottom' },
+                title: { display: true, text: 'Status Overview' }
+            }
+        }
+    });
+}
+
+function renderScanTypeChart() {
     const ctx = document.getElementById('scanTypeChart');
-    if (!ctx) return;
-
+    if (!ctx || typeof Chart === 'undefined') return;
+    
+    // Simple categorization of scan types based on findings
+    const scanTypes = scansData.reduce((acc, scan) => {
+        const scanType = scan.scanType || 'X-Ray';
+        acc[scanType] = (acc[scanType] || 0) + 1;
+        return acc;
+    }, {});
+    
     new Chart(ctx, {
         type: 'doughnut',
         data: {
             labels: Object.keys(scanTypes),
             datasets: [{
                 data: Object.values(scanTypes),
-                backgroundColor: [
-                    '#3b82f6', // Blue
-                    '#10b981', // Green
-                    '#f59e0b', // Amber
-                    '#ef4444', // Red
-                    '#8b5cf6', // Purple
-                    '#06b6d4'  // Cyan
-                ],
+                backgroundColor: ['#dc2626', '#16a34a', '#f59e0b', '#6b7280'],
                 borderWidth: 2,
-                borderColor: '#ffffff'
+                borderColor: '#fff'
             }]
         },
         options: {
             responsive: true,
-            maintainAspectRatio: false,
             plugins: {
-                legend: {
-                    position: 'bottom',
-                    labels: {
-                        padding: 15,
-                        usePointStyle: true
-                    }
-                },
-                tooltip: {
-                    callbacks: {
-                        label: function(context) {
-                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                            const percentage = Math.round((context.raw / total) * 100);
-                            return `${context.label}: ${context.raw} (${percentage}%)`;
-                        }
-                    }
-                }
-            }
-        }
-    });
-}
-
-// AI Confidence Distribution Bar Chart
-function renderConfidenceChart() {
-    const confidenceRanges = {
-        '90-100%': 0,
-        '80-89%': 0,
-        '70-79%': 0,
-        '60-69%': 0,
-        '<60%': 0
-    };
-
-    scansData.forEach(scan => {
-        const confidence = scan.priority?.confidence || 0;
-        if (confidence >= 90) confidenceRanges['90-100%']++;
-        else if (confidence >= 80) confidenceRanges['80-89%']++;
-        else if (confidence >= 70) confidenceRanges['70-79%']++;
-        else if (confidence >= 60) confidenceRanges['60-69%']++;
-        else confidenceRanges['<60%']++;
-    });
-
-    const ctx = document.getElementById('confidenceChart');
-    if (!ctx) return;
-
-    new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: Object.keys(confidenceRanges),
-            datasets: [{
-                label: 'Number of Scans',
-                data: Object.values(confidenceRanges),
-                backgroundColor: [
-                    '#10b981', // High confidence - Green
-                    '#3b82f6', // Good confidence - Blue
-                    '#f59e0b', // Medium confidence - Amber
-                    '#f97316', // Low confidence - Orange
-                    '#ef4444'  // Very low confidence - Red
-                ],
-                borderColor: [
-                    '#059669',
-                    '#2563eb',
-                    '#d97706',
-                    '#ea580c',
-                    '#dc2626'
-                ],
-                borderWidth: 1
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    display: false
-                },
-                tooltip: {
-                    callbacks: {
-                        label: function(context) {
-                            return `${context.raw} scans with ${context.label} confidence`;
-                        }
-                    }
-                }
-            },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    ticks: {
-                        stepSize: 1
-                    }
-                }
-            }
-        }
-    });
-}
-
-// Priority Levels Pie Chart
-function renderPriorityChart() {
-    const priorities = { urgent: 0, high: 0, medium: 0, low: 0 };
-    scansData.forEach(scan => {
-        const level = scan.priority?.level || 'low';
-        if (priorities.hasOwnProperty(level)) {
-            priorities[level]++;
-        }
-    });
-
-    const ctx = document.getElementById('priorityChart');
-    if (!ctx) return;
-
-    new Chart(ctx, {
-        type: 'doughnut',
-        data: {
-            labels: ['Urgent', 'High', 'Medium', 'Low'],
-            datasets: [{
-                data: [priorities.urgent, priorities.high, priorities.medium, priorities.low],
-                backgroundColor: [
-                    '#dc2626', // Urgent - Red
-                    '#ea580c', // High - Orange
-                    '#ca8a04', // Medium - Yellow
-                    '#059669'  // Low - Green
-                ],
-                borderWidth: 2,
-                borderColor: '#ffffff'
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    position: 'bottom',
-                    labels: {
-                        padding: 15,
-                        usePointStyle: true
-                    }
-                },
-                tooltip: {
-                    callbacks: {
-                        label: function(context) {
-                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                            const percentage = Math.round((context.raw / total) * 100);
-                            return `${context.label}: ${context.raw} (${percentage}%)`;
-                        }
-                    }
-                }
-            }
-        }
-    });
-}
-
-// Status Overview Bar Chart
-function renderStatusChart() {
-    const statuses = {};
-    scansData.forEach(scan => {
-        statuses[scan.status] = (statuses[scan.status] || 0) + 1;
-    });
-
-    const ctx = document.getElementById('statusChart');
-    if (!ctx) return;
-
-    new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: Object.keys(statuses),
-            datasets: [{
-                label: 'Number of Scans',
-                data: Object.values(statuses),
-                backgroundColor: [
-                    '#f59e0b', // Pending - Amber
-                    '#3b82f6', // In Progress - Blue
-                    '#10b981'  // Completed - Green
-                ],
-                borderColor: [
-                    '#d97706',
-                    '#2563eb',
-                    '#059669'
-                ],
-                borderWidth: 1
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    display: false
-                }
-            },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    ticks: {
-                        stepSize: 1
-                    }
-                }
-            }
-        }
-    });
-}
-
-// Body Parts Horizontal Bar Chart
-function renderBodyPartsChart() {
-    const bodyParts = {};
-    scansData.forEach(scan => {
-        bodyParts[scan.bodyPart] = (bodyParts[scan.bodyPart] || 0) + 1;
-    });
-
-    const ctx = document.getElementById('bodyPartsChart');
-    if (!ctx) return;
-
-    new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: Object.keys(bodyParts),
-            datasets: [{
-                label: 'Number of Scans',
-                data: Object.values(bodyParts),
-                backgroundColor: '#8b5cf6',
-                borderColor: '#7c3aed',
-                borderWidth: 1
-            }]
-        },
-        options: {
-            indexAxis: 'y',
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    display: false
-                }
-            },
-            scales: {
-                x: {
-                    beginAtZero: true,
-                    ticks: {
-                        stepSize: 1
-                    }
-                }
-            }
-        }
-    });
-}
-
-// Scans by Date Line Chart
-function renderDateChart() {
-    const dates = {};
-    scansData.forEach(scan => {
-        const date = new Date(scan.scanDate).toISOString().split('T')[0];
-        dates[date] = (dates[date] || 0) + 1;
-    });
-
-    // Sort dates
-    const sortedDates = Object.keys(dates).sort();
-    const sortedCounts = sortedDates.map(date => dates[date]);
-
-    const ctx = document.getElementById('dateChart');
-    if (!ctx) return;
-
-    new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: sortedDates.map(date => new Date(date).toLocaleDateString()),
-            datasets: [{
-                label: 'Scans per Day',
-                data: sortedCounts,
-                borderColor: '#06b6d4',
-                backgroundColor: 'rgba(6, 182, 212, 0.1)',
-                borderWidth: 2,
-                fill: true,
-                tension: 0.4
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    display: false
-                }
-            },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    ticks: {
-                        stepSize: 1
-                    }
-                }
+                legend: { position: 'bottom' },
+                title: { display: true, text: 'Scan Types Distribution' }
             }
         }
     });

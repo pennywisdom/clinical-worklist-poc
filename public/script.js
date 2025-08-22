@@ -14,11 +14,72 @@ const closeModalBtn = document.querySelector('.close-button');
 let allScans = [];
 let scanTypeChart, confidenceChart;
 
-// Initialize
+// Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
-    loadScans();
-    setupEventListeners();
+    // Trigger confetti effect on page load
+    createConfetti();
+    
+    // Initialize the main app
+    init();
 });
+
+// Create confetti effect
+function createConfetti() {
+    const confettiContainer = document.getElementById('confetti-container');
+    if (!confettiContainer) return;
+    
+    const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#feca57', '#ff9ff3', '#54a0ff', '#5f27cd', '#26de81', '#fc5c65', '#fd79a8', '#fdcb6e'];
+    const confettiCount = 350; // Much more confetti for density!
+    
+    for (let i = 0; i < confettiCount; i++) {
+        const confetti = document.createElement('div');
+        confetti.classList.add('confetti');
+        
+        // Random positioning across the screen
+        confetti.style.left = Math.random() * 100 + '%';
+        
+        // Different animation durations for variety
+        confetti.style.animationDuration = (Math.random() * 1 + 2.5) + 's'; // 2.5-3.5 seconds (shorter)
+        confetti.style.animationDelay = Math.random() * 1 + 's'; // Faster start
+        
+        // Random color
+        const randomColor = colors[Math.floor(Math.random() * colors.length)];
+        confetti.style.backgroundColor = randomColor;
+        
+        // Random size - bigger variety
+        const size = Math.random() * 8 + 6; // 6px to 14px
+        confetti.style.width = size + 'px';
+        confetti.style.height = size + 'px';
+        
+        // Add different shapes and slight horizontal drift
+        if (Math.random() > 0.5) {
+            confetti.style.borderRadius = '0'; // Square pieces
+        }
+        
+        // Add some random horizontal drift
+        const drift = (Math.random() - 0.5) * 200; // -100px to +100px drift
+        confetti.style.setProperty('--drift', drift + 'px');
+        
+        confettiContainer.appendChild(confetti);
+    }
+    
+    // Remove confetti after animation completes
+    setTimeout(() => {
+        confettiContainer.innerHTML = '';
+    }, 5000); // Shorter cleanup time
+}
+
+// Initialize the application
+async function init() {
+    try {
+        setupEventListeners();
+        await loadScans();
+        filterAndRenderScans();
+    } catch (error) {
+        console.error('Error initializing app:', error);
+        showEmptyState('Failed to load scan data. Please refresh the page.');
+    }
+}
 
 function setupEventListeners() {
     statusFilter.addEventListener('change', filterAndRenderScans);

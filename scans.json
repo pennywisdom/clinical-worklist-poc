@@ -1,70 +1,148 @@
 [
   {
-    "scanId": "scan_f9b3a",
-    "patientId": "p001",
-    "scanType": "MRI",
+    "scanId": "SCAN001",
+    "patientId": "P12345",
+    "patientName": "Sarah Mitchell",
+    "age": 34,
     "bodyPart": "Right Knee",
-    "scanDate": "2025-08-21T09:30:00Z",
-    "imageUrl": "/images/right_knee.png",
-    "aiPreliminaryDiagnosis": "Complete ACL Tear",
-    "aiConfidenceScore": 0.96,
-    "status": "Pending Review",
-    "priority": "Urgent",
-    "assignedRadiologist": "Dr. Emily Carter"
-  },
-  {
-    "scanId": "scan_a1c4e",
-    "patientId": "p002",
-    "scanType": "X-Ray",
-    "bodyPart": "Left Ankle",
-    "scanDate": "2025-08-21T10:15:00Z",
-    "imageUrl": "/images/left_ankle.png",
-    "aiPreliminaryDiagnosis": "Distal Fibula Fracture (Weber B)",
-    "aiConfidenceScore": 0.99,
-    "status": "Reviewed",
-    "priority": "High",
-    "assignedRadiologist": "Dr. Ben Stone",
-    "finalDiagnosis": "Confirmed distal fibula fracture, Weber B type. No significant talar shift.",
-    "reviewTimestamp": "2025-08-21T10:45:00Z"
-  },
-  {
-    "scanId": "scan_d8e7f",
-    "patientId": "p003",
-    "scanType": "CT Scan",
-    "bodyPart": "Right Wrist",
-    "scanDate": "2025-08-21T11:00:00Z",
-    "imageUrl": "/images/right_wrist.png",
-    "aiPreliminaryDiagnosis": "Non-displaced Scaphoid Waist Fracture",
-    "aiConfidenceScore": 0.88,
-    "status": "Pending Review",
-    "priority": "High",
-    "assignedRadiologist": "Dr. Emily Carter"
-  },
-  {
-    "scanId": "scan_b2d5g",
-    "patientId": "p004",
     "scanType": "MRI",
-    "bodyPart": "Left Shoulder",
-    "scanDate": "2025-08-21T08:45:00Z",
-    "imageUrl": "/images/left_shoulder.png",
-    "aiPreliminaryDiagnosis": "Partial-thickness Rotator Cuff Tear (Supraspinatus)",
-    "aiConfidenceScore": 0.92,
-    "status": "Flagged for Specialist",
-    "priority": "Urgent",
-    "assignedRadiologist": "Dr. Ben Stone",
-    "notes": "AI indicates significant tendon retraction. Recommend orthopedic consult."
+    "scanDate": "2025-08-21T14:30:00Z",
+    "status": "Pending Review",
+    "consultant": "Dr. James Wilson",
+    "description": "Patient reports knee pain after sports injury",
+    "findings": "Possible ACL tear, swelling present",
+    "image": "images/right_knee.png",
+    "priority": {
+      "level": "high",
+      "score": 85,
+      "aiAnalysis": "Suspected complete ACL tear with associated bone marrow edema. Recommend urgent orthopedic consultation.",
+      "confidence": 92,
+      "flags": [
+        "suspected_tear",
+        "joint_effusion",
+        "acute_injury"
+      ]
+    }
   },
   {
-    "scanId": "scan_c6h9i",
-    "patientId": "p005",
+    "scanId": "SCAN002",
+    "patientId": "P12346",
+    "patientName": "Robert Chen",
+    "age": 67,
+    "bodyPart": "Left Hip",
     "scanType": "X-Ray",
-    "bodyPart": "Right Foot",
-    "scanDate": "2025-08-21T11:20:00Z",
-    "imageUrl": "/images/right_foot.png",
-    "aiPreliminaryDiagnosis": "Suspected 3rd Metatarsal Stress Fracture",
-    "aiConfidenceScore": 0.76,
+    "scanDate": "2025-08-21T11:15:00Z",
+    "status": "Completed",
+    "consultant": "Dr. Maria Rodriguez",
+    "description": "Hip pain following fall at home",
+    "findings": "Fracture detected in femoral neck",
+    "image": "images/left_hip.png",
+    "priority": {
+      "level": "urgent",
+      "score": 95,
+      "aiAnalysis": "Displaced femoral neck fracture requiring immediate surgical intervention. High risk of avascular necrosis.",
+      "confidence": 98,
+      "flags": [
+        "fracture",
+        "displacement",
+        "surgical_emergency"
+      ]
+    }
+  },
+  {
+    "scanId": "SCAN003",
+    "patientId": "P12347",
+    "patientName": "Emily Johnson",
+    "age": 28,
+    "bodyPart": "Right Ankle",
+    "scanType": "CT",
+    "scanDate": "2025-08-20T16:45:00Z",
+    "status": "In Progress",
+    "consultant": "Dr. Ahmed Hassan",
+    "description": "Runner with persistent ankle pain",
+    "findings": "Stress fracture in tibia",
+    "image": "images/left_ankle.png",
+    "priority": {
+      "level": "medium",
+      "score": 65,
+      "aiAnalysis": "Stress fracture of distal tibia with minimal displacement. Conservative management likely appropriate.",
+      "confidence": 88,
+      "flags": [
+        "stress_fracture",
+        "minimal_displacement"
+      ]
+    }
+  },
+  {
+    "scanId": "SCAN004",
+    "patientId": "P12348",
+    "patientName": "Michael Thompson",
+    "age": 45,
+    "bodyPart": "Lower Back",
+    "scanType": "MRI",
+    "scanDate": "2025-08-20T09:20:00Z",
     "status": "Pending Review",
-    "priority": "Routine",
-    "assignedRadiologist": "Dr. Emily Carter"
+    "consultant": "Dr. Lisa Park",
+    "description": "Lower back pain radiating to leg",
+    "findings": "Herniated disc L4-L5",
+    "image": "images/lower_back.png",
+    "priority": {
+      "level": "medium",
+      "score": 70,
+      "aiAnalysis": "Central disc herniation at L4-L5 with mild spinal canal narrowing. Monitor for neurological symptoms.",
+      "confidence": 85,
+      "flags": [
+        "disc_herniation",
+        "spinal_stenosis"
+      ]
+    }
+  },
+  {
+    "scanId": "SCAN005",
+    "patientId": "P12349",
+    "patientName": "Jennifer Davis",
+    "age": 22,
+    "bodyPart": "Left Wrist",
+    "scanType": "X-Ray",
+    "scanDate": "2025-08-19T13:10:00Z",
+    "status": "Completed",
+    "consultant": "Dr. David Kim",
+    "description": "Wrist pain after fall while skating",
+    "findings": "Normal bone structure, no fractures",
+    "image": "images/right_wrist.png",
+    "priority": {
+      "level": "low",
+      "score": 25,
+      "aiAnalysis": "No acute fractures or dislocations identified. Soft tissue injury likely. Clinical correlation recommended.",
+      "confidence": 94,
+      "flags": [
+        "normal_bones",
+        "soft_tissue"
+      ]
+    }
+  },
+  {
+    "scanId": "SCAN006",
+    "patientId": "P12350",
+    "patientName": "Thomas Anderson",
+    "age": 56,
+    "bodyPart": "Right Shoulder",
+    "scanType": "MRI",
+    "scanDate": "2025-08-19T10:30:00Z",
+    "status": "Pending Review",
+    "consultant": "Dr. Rachel Green",
+    "description": "Shoulder pain limiting range of motion",
+    "findings": "Rotator cuff tear, partial thickness",
+    "image": "images/left_shoulder.png",
+    "priority": {
+      "level": "medium",
+      "score": 60,
+      "aiAnalysis": "Partial thickness supraspinatus tear. Consider physical therapy before surgical intervention.",
+      "confidence": 90,
+      "flags": [
+        "partial_tear",
+        "rotator_cuff"
+      ]
+    }
   }
 ]

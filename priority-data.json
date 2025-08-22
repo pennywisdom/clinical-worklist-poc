@@ -1,0 +1,126 @@
+{
+  "priorityRules": [
+    {
+      "condition": "fracture",
+      "keywords": [
+        "fracture",
+        "break",
+        "broken",
+        "displaced"
+      ],
+      "priority": "urgent",
+      "score": 90,
+      "reasoning": "Suspected fracture requires immediate attention"
+    },
+    {
+      "condition": "acute_injury",
+      "keywords": [
+        "acute",
+        "trauma",
+        "emergency",
+        "severe"
+      ],
+      "priority": "urgent",
+      "score": 85,
+      "reasoning": "Acute injury needs urgent evaluation"
+    },
+    {
+      "condition": "complex_case",
+      "keywords": [
+        "complex",
+        "multiple",
+        "revision",
+        "post-surgical"
+      ],
+      "priority": "high",
+      "score": 75,
+      "reasoning": "Complex case requires specialized attention"
+    },
+    {
+      "condition": "follow_up",
+      "keywords": [
+        "follow-up",
+        "post-op",
+        "healing",
+        "progress"
+      ],
+      "priority": "medium",
+      "score": 60,
+      "reasoning": "Follow-up study for monitoring progress"
+    },
+    {
+      "condition": "routine",
+      "keywords": [
+        "routine",
+        "screening",
+        "annual",
+        "preventive"
+      ],
+      "priority": "low",
+      "score": 30,
+      "reasoning": "Routine screening study"
+    }
+  ],
+  "aiAnalysis": {
+    "SCAN001": {
+      "aiFindings": "Suspected complete ACL tear with associated bone marrow edema. Joint effusion present.",
+      "confidence": 92,
+      "keyStructures": [
+        "ACL",
+        "meniscus",
+        "joint space"
+      ],
+      "recommendations": "Recommend urgent orthopedic consultation within 4 hours"
+    },
+    "SCAN002": {
+      "aiFindings": "Displaced femoral neck fracture requiring immediate surgical intervention. High risk of avascular necrosis.",
+      "confidence": 98,
+      "keyStructures": [
+        "femoral neck",
+        "acetabulum",
+        "hip joint"
+      ],
+      "recommendations": "Emergency surgical consultation required"
+    },
+    "SCAN003": {
+      "aiFindings": "Stress fracture of distal tibia with minimal displacement. No significant soft tissue involvement.",
+      "confidence": 88,
+      "keyStructures": [
+        "tibia",
+        "fibula",
+        "ankle joint"
+      ],
+      "recommendations": "Conservative management likely appropriate"
+    },
+    "SCAN004": {
+      "aiFindings": "Central disc herniation at L4-L5 with mild spinal canal narrowing. No nerve root compression.",
+      "confidence": 85,
+      "keyStructures": [
+        "L4-L5 disc",
+        "spinal canal",
+        "nerve roots"
+      ],
+      "recommendations": "Monitor for neurological symptoms, consider MRI follow-up"
+    },
+    "SCAN005": {
+      "aiFindings": "No acute fractures or dislocations identified. Soft tissue swelling consistent with sprain.",
+      "confidence": 94,
+      "keyStructures": [
+        "carpal bones",
+        "radius",
+        "ulna"
+      ],
+      "recommendations": "Clinical correlation recommended for persistent pain"
+    },
+    "SCAN006": {
+      "aiFindings": "Partial thickness supraspinatus tear. Minor AC joint degeneration noted.",
+      "confidence": 90,
+      "keyStructures": [
+        "rotator cuff",
+        "AC joint",
+        "humerus"
+      ],
+      "recommendations": "Consider physical therapy before surgical intervention"
+    }
+  }
+}

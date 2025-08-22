@@ -9,6 +9,29 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
+    <!-- Medical Scanner Loading Overlay -->
+    <div id="medical-loader" class="medical-loader-overlay">
+        <div class="scanner-grid"></div>
+        <div class="scanner-lines">
+            <div class="scan-line horizontal"></div>
+            <div class="scan-line vertical"></div>
+        </div>
+        <div class="medical-logo">
+            <div class="cross-icon">⚕</div>
+            <div class="heartbeat-line"></div>
+        </div>
+        <div class="loading-text">
+            <span id="loading-typewriter"></span>
+            <span class="cursor">|</span>
+        </div>
+        <div class="system-status">
+            <div class="status-bar">
+                <div class="status-progress"></div>
+            </div>
+            <div class="status-text">SCANNING PATIENT DATABASE...</div>
+        </div>
+    </div>
+
     <!-- Confetti Container -->
     <div id="confetti-container"></div>
     

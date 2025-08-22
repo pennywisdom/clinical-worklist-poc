@@ -5,6 +5,16 @@ const loadingMessages = [
     'SYSTEM READY - WELCOME MEDICAL TEAM'
 ];
 
+// Chart instances tracking
+let chartInstances = {
+    priorityChart: null,
+    bodyPartsChart: null,
+    confidenceChart: null,
+    dateChart: null,
+    statusChart: null,
+    scanTypeChart: null
+};
+
 function typewriterEffect(element, text, speed = 50) {
     return new Promise((resolve) => {
         let i = 0;
@@ -104,6 +114,75 @@ async function init() {
     }
 }
 
+// Trigger banner flash and confetti celebration
+function triggerBannerCelebration() {
+    const banner = document.querySelector('.new-feature-banner');
+    if (!banner) {
+        console.log('Banner not found, skipping celebration');
+        return;
+    }
+    
+    console.log('Starting banner celebration...');
+    
+    // Flash the banner
+    banner.style.animation = 'bannerFlash 1.5s ease-in-out';
+    banner.style.zIndex = '9999';
+    
+    // Create and trigger confetti after flash
+    setTimeout(() => {
+        createBannerConfetti();
+        
+        // Remove banner after confetti
+        setTimeout(() => {
+            banner.style.animation = 'fadeOutUp 0.8s ease-in-out forwards';
+        }, 2000);
+    }, 1500);
+}
+
+// Create confetti effect from banner
+function createBannerConfetti() {
+    const banner = document.querySelector('.new-feature-banner');
+    if (!banner) return;
+    
+    const bannerRect = banner.getBoundingClientRect();
+    
+    // Create confetti container
+    const confettiContainer = document.createElement('div');
+    confettiContainer.className = 'confetti-container';
+    document.body.appendChild(confettiContainer);
+    
+    // Create multiple confetti pieces
+    for (let i = 0; i < 50; i++) {
+        const confetti = document.createElement('div');
+        confetti.className = 'confetti-piece';
+        
+        // Random colors
+        const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#feca57', '#ff9ff3', '#54a0ff'];
+        confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+        
+        // Random starting position along banner width
+        confetti.style.left = Math.random() * bannerRect.width + bannerRect.left + 'px';
+        confetti.style.top = bannerRect.bottom + 'px';
+        
+        // Random size
+        const size = Math.random() * 8 + 4;
+        confetti.style.width = size + 'px';
+        confetti.style.height = size + 'px';
+        
+        // Random animation delay
+        confetti.style.animationDelay = Math.random() * 0.5 + 's';
+        
+        confettiContainer.appendChild(confetti);
+    }
+    
+    // Clean up confetti after animation
+    setTimeout(() => {
+        if (confettiContainer.parentNode) {
+            confettiContainer.remove();
+        }
+    }, 3000);
+}
+
 // Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
     // Trigger confetti effect on page load
@@ -163,22 +242,140 @@ function createConfetti() {
 async function init() {
     try {
         setupEventListeners();
-        await loadScans();
+        await loadData();
         filterAndRenderScans();
+        renderCharts();
     } catch (error) {
         console.error('Error initializing app:', error);
         showEmptyState('Failed to load scan data. Please refresh the page.');
     }
 }
 
-function setupEventListeners() {
-    statusFilter.addEventListener('change', filterAndRenderScans);
-    searchBox.addEventListener('input', debounce(filterAndRenderScans, 300));
-    closeModalBtn.addEventListener('click', closeModal);
-    window.addEventListener('click', (event) => {
-        if (event.target == modal) {
-            closeModal();
+// Load data from API
+async function loadData() {
+    try {
+        console.log('Loading data from API...');
+        const scansResponse = await fetch('/api/scans');
+        
+        if (!scansResponse.ok) {
+            throw new Error('Failed to fetch scans data');
         }
+        
+        scansData = await scansResponse.json();
+        
+        // Patient data is already included in the scans data, no need to fetch separately
+        console.log(`Loaded ${scansData.length} scans with patient data included`);
+        
+    } catch (error) {
+        console.error('Error loading data:', error);
+        throw error;
+    }
+}
+
+// Filter and render scans
+function filterAndRenderScans(filter = 'all') {
+    let filteredScans = scansData;
+    
+    if (filter !== 'all') {
+        filteredScans = scansData.filter(scan => {
+            const priority = scan.priority?.level || scan.priority;
+            return priority === filter;
+        });
+    }
+    
+    // Sort scans
+    filteredScans.sort((a, b) => {
+        const aPriority = a.priority?.level || a.priority || 'medium';
+        const bPriority = b.priority?.level || b.priority || 'medium';
+        
+        if (currentSort === 'priority') {
+            return priorityOrder[bPriority] - priorityOrder[aPriority];
+        } else if (currentSort === 'date') {
+            return new Date(b.scanDate) - new Date(a.scanDate);
+        } else if (currentSort === 'body-part') {
+            return a.bodyPart.localeCompare(b.bodyPart);
+        }
+    });
+    
+    renderScans(filteredScans);
+    updateStats();
+    updatePriorityDashboard();
+}
+
+function setupEventListeners() {
+    // Make priority dashboard cards clickable as filters
+    document.querySelector('.priority-stat.urgent')?.addEventListener('click', () => filterScans('urgent'));
+    document.querySelector('.priority-stat.high')?.addEventListener('click', () => filterScans('high'));
+    document.querySelector('.priority-stat.medium')?.addEventListener('click', () => filterScans('medium'));
+    document.querySelector('.priority-stat.low')?.addEventListener('click', () => filterScans('low'));
+    
+    // Add click handler for "Total Scans" stat card to show all
+    document.querySelector('.stat-card')?.addEventListener('click', () => filterScans('all'));
+
+    // Sort dropdown
+    const sortSelect = document.getElementById('priority-sort');
+    if (sortSelect) {
+        sortSelect.addEventListener('change', (e) => {
+            currentSort = e.target.value;
+            filterAndRenderScans();
+        });
+    }
+    
+    // Status filter dropdown
+    const statusFilter = document.getElementById('statusFilter');
+    if (statusFilter) {
+        statusFilter.addEventListener('change', (e) => {
+            filterByStatus(e.target.value);
+        });
+    }
+    
+    // Search box
+    const searchBox = document.getElementById('searchBox');
+    if (searchBox) {
+        searchBox.addEventListener('input', (e) => {
+            searchScans(e.target.value);
+        });
+    }
+}
+
+// Filter scans by priority
+function filterScans(priority) {
+    // Update active state visually
+    document.querySelectorAll('.priority-stat').forEach(stat => stat.classList.remove('active'));
+    if (priority !== 'all') {
+        document.querySelector(`.priority-stat.${priority}`)?.classList.add('active');
+    }
+    
+    filterAndRenderScans(priority);
+}
+
+// Filter scans by status
+function filterByStatus(status) {
+    let filteredScans = scansData;
+    
+    if (status !== 'all') {
+        filteredScans = scansData.filter(scan => scan.status === status);
+    }
+    
+    renderScans(filteredScans);
+    updateStats();
+    updatePriorityDashboard();
+}
+
+// Search scans by text
+function searchScans(query) {
+    if (!query.trim()) {
+        filterAndRenderScans();
+        return;
+    }
+    
+    const searchTerm = query.toLowerCase();
+    const filteredScans = scansData.filter(scan => {
+        return scan.scanId.toLowerCase().includes(searchTerm) ||
+               scan.patientName.toLowerCase().includes(searchTerm) ||
+               scan.bodyPart.toLowerCase().includes(searchTerm) ||
+               scan.consultant.toLowerCase().includes(searchTerm) ||
+               scan.findings.toLowerCase().includes(searchTerm);
     });
     
     renderScans(filteredScans);
@@ -670,6 +867,16 @@ window.onclick = function(event) {
     }
 }
 
+// Destroy existing charts before creating new ones
+function destroyExistingCharts() {
+    Object.keys(chartInstances).forEach(chartKey => {
+        if (chartInstances[chartKey]) {
+            chartInstances[chartKey].destroy();
+            chartInstances[chartKey] = null;
+        }
+    });
+}
+
 // Render charts
 function renderCharts() {
     if (typeof Chart === 'undefined') {
@@ -678,6 +885,10 @@ function renderCharts() {
     }
     
     console.log('Rendering charts with', scansData.length, 'scans');
+    
+    // Destroy existing charts first
+    destroyExistingCharts();
+    
     renderPriorityChart();
     renderBodyPartsChart();
     renderConfidenceChart();
@@ -698,7 +909,7 @@ function renderPriorityChart() {
         low: scansData.filter(scan => (scan.priority?.level || scan.priority) === 'low').length
     };
     
-    new Chart(ctx, {
+    chartInstances.priorityChart = new Chart(ctx, {
         type: 'doughnut',
         data: {
             labels: ['Urgent', 'High', 'Medium', 'Low'],
@@ -728,7 +939,7 @@ function renderBodyPartsChart() {
         return acc;
     }, {});
     
-    new Chart(ctx, {
+    chartInstances.bodyPartsChart = new Chart(ctx, {
         type: 'bar',
         data: {
             labels: Object.keys(bodyPartCounts),
@@ -758,7 +969,7 @@ function renderConfidenceChart() {
     
     const confidenceData = scansData.map(scan => scan.priority?.confidence || 85);
     
-    new Chart(ctx, {
+    chartInstances.confidenceChart = new Chart(ctx, {
         type: 'line',
         data: {
             labels: scansData.map(scan => scan.scanId),
@@ -793,7 +1004,7 @@ function renderDateChart() {
         return acc;
     }, {});
     
-    new Chart(ctx, {
+    chartInstances.dateChart = new Chart(ctx, {
         type: 'line',
         data: {
             labels: Object.keys(dateData),
@@ -827,7 +1038,7 @@ function renderStatusChart() {
         return acc;
     }, {});
     
-    new Chart(ctx, {
+    chartInstances.statusChart = new Chart(ctx, {
         type: 'pie',
         data: {
             labels: Object.keys(statusData),
@@ -859,7 +1070,7 @@ function renderScanTypeChart() {
         return acc;
     }, {});
     
-    new Chart(ctx, {
+    chartInstances.scanTypeChart = new Chart(ctx, {
         type: 'doughnut',
         data: {
             labels: Object.keys(scanTypes),
